@@ -27,14 +27,15 @@ public class DoiNhietDoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.doi_nhiet_do);
+
+        getSupportActionBar().setTitle("Đổi nhiệt độ");
         mapping();
-        SetupSpinner();
-        ChonNhietDo();
-        doinhietdo();
+        setupSpinner();
+        chonNhietDo();
+        setupButtonDoiNhietDo();
         clearText();
     }
-    public void mapping()
-    {
+    public void mapping() {
         txtInput = findViewById(R.id.txtInput);
         txtOutput = findViewById(R.id.txtOutput);
         txtNhietDo = findViewById(R.id.txtNhietDo);
@@ -45,61 +46,30 @@ public class DoiNhietDoActivity extends AppCompatActivity {
         sp = findViewById(R.id.spinner);
     }
 
-    private void SetupSpinner() {
+    private void setupSpinner() {
         ArrayList<String> nhietDo = new ArrayList<String>();
-        //nhietDo.add("--Chọn nhiệt độ--");
-        nhietDo.add("C");
-        nhietDo.add("F");
+        nhietDo.add("Độ C");
+        nhietDo.add("Độ F");
         ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item,nhietDo);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sp.setAdapter(adapter);
     }
 
-    public void ChonNhietDo()
-    {
-
-
+    public void chonNhietDo() {
         sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                text = sp.getSelectedItem().toString();
-                String s = txtInput.getText().toString().trim().replaceAll("\\s+","");
-
-                String numberPattern="^(\\+|-|)?([0-9]+(\\.[0-9]+|))$";
-                Convert c = new Convert();
-                switch (text)
-                {
-                    case "C": {
+                switch (position) {
+                    case 0:
+                        text = Convert.TEMPERATURE.C.toString();
                         txtNhietDo.setText("Độ F");
-                        if(!TextUtils.isEmpty(s))
-                        {
-                            double number = Double.parseDouble(s);
-                            CtoF(number);
-                        }
-                        /*if( !Pattern.matches(numberPattern,s) ){
-                            Toast.makeText(DoiNhietDoActivity.this,
-                                    "Phải nhập số âm hoặc dương hợp lệ",Toast.LENGTH_LONG).show();
-                            return;
-                        }*/
+                        doiNhietDo();
                         break;
-                    }
-
-                    case "F":
-                    {
+                    case 1:
+                        text = Convert.TEMPERATURE.F.toString();
                         txtNhietDo.setText("Độ C");
-                        if(!TextUtils.isEmpty(txtInput.getText().toString().trim()))
-                        {
-                            double number = Double.parseDouble(s);
-                            FtoC(number);
-
-                        }
-                        /*if( !Pattern.matches(numberPattern,s) ){
-                            Toast.makeText(DoiNhietDoActivity.this,
-                                    "Phải nhập số âm hoặc dương hợp lệ",Toast.LENGTH_LONG).show();
-                            return;
-                        }*/
+                        doiNhietDo();
                         break;
-                    }
                 }
             }
 
@@ -110,65 +80,28 @@ public class DoiNhietDoActivity extends AppCompatActivity {
         });
     }
 
-    private  void doinhietdo()
-    {
+    private  void setupButtonDoiNhietDo() {
         btnChuyenDoi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String numberPattern="^(\\+|-|)?([0-9]+(\\.[0-9]+|))$";
-                String s = txtInput.getText().toString().trim();
-                if( TextUtils.isEmpty(s) ){
-                    Toast.makeText(DoiNhietDoActivity.this,"Input nhiệt độ trống",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                s=s.replaceAll("\\s+","");
-                if( !Pattern.matches(numberPattern,s) ){
-                    Toast.makeText(DoiNhietDoActivity.this,"Phải nhập số âm hoặc dương hợp lệ",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                // set lại input sau khi loại bỏ khoảng trắng nếu đúng với pattern
-                txtInput.setText(s);
-
-                if (TextUtils.isEmpty(s)) {
-                    Toast.makeText(DoiNhietDoActivity.this, "Vui lòng nhập nhiệt dộ "
-                            , Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                double number = Double.parseDouble(s);
-
-                if(text == "C")
-                    CtoF(number);
-                else if (text == "F")
-                    FtoC(number);
-
+                doiNhietDo();
             }
         });
     }
 
-
-    private void CtoF(double number)
-    {
-        Convert c = new Convert();
-        c.setDoC(number);
-        c.convertCtoF();
-        double DoF = c.getDoF();
-        DoF = Math.ceil(DoF*1000)/1000;
+    private void CtoF(double number) {
+        Convert c = new Convert(number);
+        double DoF = c.convertCtoF();
         txtOutput.setText(String.valueOf(DoF));
     }
 
-    private void FtoC(double number)
-    {
-
-        Convert c =new Convert();
-        c.setDoF(number);
-        c.convertFtoC();
-        double DoC = c.getDoC();
-        DoC = Math.ceil(DoC*1000)/1000;
+    private void FtoC(double number) {
+        Convert c =new Convert(number);
+        double DoC = c.convertFtoC();
         txtOutput.setText(String.valueOf(DoC));
     }
-    private void clearText()
-    {
+
+    private void clearText() {
         btnXoa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,5 +109,35 @@ public class DoiNhietDoActivity extends AppCompatActivity {
                 txtOutput.setText("");
             }
         });
+    }
+
+    private boolean validateInput(String s){
+        String numberPattern="^(\\+|-|)?([0-9]+(\\.[0-9]+|))$";
+        if( TextUtils.isEmpty(s) ){
+            Toast.makeText(DoiNhietDoActivity.this,"Input nhiệt độ trống",Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        s=s.replaceAll("\\s+","");
+        if( !Pattern.matches(numberPattern,s) ){
+            Toast.makeText(DoiNhietDoActivity.this,"Phải nhập số âm hoặc dương hợp lệ",Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        txtInput.setText(s);
+        return true;
+    }
+
+    private void doiNhietDo(){
+        String s = txtInput.getText().toString().trim();
+        if(validateInput(s)==false)
+            return;
+        s = txtInput.getText().toString();
+        double number = Double.parseDouble(s);
+
+        if(text.equals("C"))
+            CtoF(number);
+        else if (text.equals("F"))
+            FtoC(number);
     }
 }

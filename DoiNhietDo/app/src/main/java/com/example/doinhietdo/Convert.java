@@ -1,32 +1,34 @@
 package com.example.doinhietdo;
 
 public class Convert {
-    private double DoC,DoF;
+    public enum TEMPERATURE{
+        F,C
+    }
+
+    private double number;
     public Convert(){}
 
-    public double getDoC() {
-        return DoC;
+    public Convert(double number) {
+        this.number = number;
     }
 
-    public double getDoF() {
-        return DoF;
+    public double getNumber() {
+        return number;
     }
 
-    public void setDoC(double doC) {
-        DoC = doC;
+    public void setNumber(double number) {
+        this.number = number;
     }
 
-    public void setDoF(double doF) {
-        DoF = doF;
+    public double convertCtoF() {
+        return round(number * 9/5 + 32 );
     }
 
-    public void convertCtoF()
-    {
-        DoF=DoC*9/5+32;
+    public double convertFtoC() {
+        return round((number - 32) * 5/9 );
     }
 
-    public void convertFtoC()
-    {
-        DoC=(DoF-32)*5/9;
+    public double round(double number){
+        return Math.ceil(number*1000)/1000;
     }
 }
